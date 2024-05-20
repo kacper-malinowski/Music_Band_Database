@@ -1,0 +1,55 @@
+﻿@page "/view-db"
+@rendermode InteractiveServer
+
+<h3>ViewDB</h3>
+
+<p>Select Table</p>
+<select @onchange="OnSelectedTableChanged">
+    <option value="">-- Select Table --</option>
+    @foreach (var table in tables) {
+        <option value="@table">@table</option>
+    }
+</select>
+<button class="btn btn-primary" >Display</button>
+
+@if (tableContent != null && tableContent.Count > 0) {
+    <h4>@selectedTable</h4>
+    <table class="table">
+        <thead>
+            <tr>
+                @foreach (var column in tableContent[0].Keys) {
+                    <th>@column</th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var row in tableContent) {
+                <tr>
+                    @foreach (var cell in row.Values) {
+                        <td>@cell</td>
+                    }
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private DataAccess dataAccess = new DataAccess();
+    private string selectedTable;
+    private List<string> tables;
+    private List<Dictionary<string, object>> tableContent;
+
+    protected override void OnInitialized() {
+        tables = dataAccess.GetTables();
+    }
+
+    private async Task OnSelectedTableChanged(ChangeEventArgs e) {
+        selectedTable = e.Value.ToString();
+
+        if (!string.IsNullOrEmpty(selectedTable)) {
+            tableContent = dataAccess.GetTableContent(selectedTable);
+            Console.WriteLine("doiung shit");
+        }
+    }
+}

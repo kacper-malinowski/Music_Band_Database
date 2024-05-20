@@ -1,0 +1,82 @@
+﻿@page "/"
+
+@rendermode InteractiveServer
+
+@inject NavigationManager Navigation
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@inject ProtectedSessionStorage sessionStorage
+
+<PageTitle>Home</PageTitle>
+<h1>BBPWr Music Mibrary</h1>
+@if (!isLoggedIn) {
+    <h2>Please log in or register to continue </h2>
+    <div class="text-input">
+        <button class="btn btn-primary" @onclick="GoToLogIn">Log In</button>
+    </div>
+    <div class="text-input">
+        <button class="btn btn-primary" @onclick="GoToRegister">Register</button>
+    </div>
+} else {
+    //<h1>Hello, @userName!</h1>
+    <div class="text-input">
+        <button class="btn btn-primary" @onclick="Logout">Logout</button>
+    </div>
+    <div class="text-input">
+        <button class="btn btn-primary" @onclick="GoToView">View Database</button>
+    </div>
+    @if (isAdmin) {
+        <div class="text-input">
+            <button class="btn btn-primary" @onclick="GoToManage">Manage Database</button>
+
+        </div>
+    }
+}
+
+@code {
+    private bool isLoggedIn, isAdmin;
+    private string userEmail, userName;
+    private bool isFirstRender = true;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender) {
+        if (firstRender && isFirstRender) {
+            isFirstRender = false;
+            var loginState = await sessionStorage.GetAsync<bool>("IsLoggedIn");
+            isLoggedIn = loginState.Success && loginState.Value;
+
+            if (isLoggedIn) {
+                var emailState = await sessionStorage.GetAsync<string>("UserEmail");
+                userEmail = emailState.Success ? emailState.Value : string.Empty;
+
+                var nameState = await sessionStorage.GetAsync<string>("UserName");
+                userName = nameState.Success ? nameState.Value : string.Empty;
+
+                var adminState = await sessionStorage.GetAsync<bool>("IsAdmin");
+                isAdmin = adminState.Success && adminState.Value;
+            }
+            StateHasChanged(); // Re-render the component
+        }
+    }
+
+    private void GoToLogIn() {
+        Navigation.NavigateTo("/login");
+    }
+
+    private void GoToRegister() {
+        Navigation.NavigateTo("/register");
+    }
+    private void GoToManage() {
+        Navigation.NavigateTo("/manage-db");
+    }
+
+    private void GoToView() {
+        Navigation.NavigateTo("/view-db");
+    }
+
+    private async void Logout() {
+        await sessionStorage.DeleteAsync("IsLoggedIn");
+        await sessionStorage.DeleteAsync("UserEmail");
+        isLoggedIn = false;
+        Navigation.NavigateTo("/");
+        StateHasChanged(); // Re-render the component
+    }
+}

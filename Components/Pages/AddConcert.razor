@@ -1,0 +1,44 @@
+﻿@page "/add-concert"
+@rendermode InteractiveServer
+
+<h3>AddConcert</h3>
+<div class="text-input">
+    Date
+    <input type="date" @bind="date" />
+</div>
+<div class="text-input">
+    Description
+    <input class="large-input" type="text" @bind="description" />
+</div>
+
+<h3>Select Songs</h3>
+<div>
+    @foreach (var song in songs) {
+        <div>
+            <input type="checkbox" @bind="song.isSelected" /> @song.name
+        </div>
+    }
+</div>
+<div class="text-input">
+    <button class="btn btn-primary" @onclick="SubmitConcert">Submit</button>
+</div>
+
+@code {
+    public DateTime date;
+    public string description;
+    DataAccess dataAccess = new DataAccess();
+    List<Song> songs;
+
+    protected override void OnInitialized() {
+        songs = dataAccess.GetSongs();
+    }
+
+    public void SubmitConcert() {
+        var selectedSongs = songs.Where(s => s.isSelected).ToList();
+        if (!selectedSongs.Any()) {
+            Console.WriteLine("At least one song must be selected!");
+            return;
+        }
+        dataAccess.AddConcert(date, description, selectedSongs);
+    }
+}

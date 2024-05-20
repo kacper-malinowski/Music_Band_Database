@@ -1,0 +1,97 @@
+﻿@page "/manage-db"
+@rendermode InteractiveServer
+@inject NavigationManager Navigation
+
+<PageTitle>Manage Database</PageTitle>
+<h1>BBPWr Music Mibrary</h1>
+
+<h2 class="header-top">Add instrument</h2>
+<input type="text" @bind="instrumentName" />
+<button class="btn btn-primary" @onclick="AddInstrument">Add instrument</button>
+<button class="btn btn-primary" @onclick="RemoveInstrument">Remove instrument</button>
+
+<h2 class="header-top">Add song</h2>
+<input type="text" @bind="songName" />
+<button class="btn btn-primary" @onclick="AddSong">Add Song</button>
+<button class="btn btn-primary" @onclick="RemoveSong">Remove Song</button>
+
+<h2 class="header-top">Add user</h2>
+<div class="text-input">
+    First Name
+    <input type="text" @bind="firstName" />
+</div>
+<div class="text-input">
+    Last Name
+    <input type="text" @bind="lastName" />
+</div>
+<div class="text-input">
+    Email
+    <input type="text" @bind="email" />
+</div>
+<div class="text-input">
+    Password
+    <input type="text" @bind="password" />
+</div>
+<div class="text-input">
+    Instrument
+    <select @bind="selectedInstrument">
+        <option value="">-- Select Instrument --</option>
+        @foreach (var instrument in instruments) {
+            <option value="@instrument">@instrument</option>
+        }
+    </select>
+</div>
+<div class="text-input">
+    <button class="btn btn-primary" @onclick="AddUser">Register</button>
+</div>
+<div class="text-input">
+    <button class="btn btn-primary" @onclick="GoToAddConcert">Add Concert</button>
+</div>
+
+@code {
+    private string? instrumentName;
+    private string? songName;
+    private string? firstName, lastName, email, password, selectedInstrument;
+    private List<string> instruments;
+    DataAccess dataAccess = new DataAccess();
+
+    protected override void OnInitialized() {
+        instruments = dataAccess.GetInstruments();
+    }
+
+    private void AddInstrument() {
+        if (!string.IsNullOrWhiteSpace(instrumentName)) {
+            dataAccess.CreateInstrument(instrumentName);
+            instrumentName = string.Empty;
+        }
+    }
+    private void RemoveInstrument() {
+        if (!string.IsNullOrWhiteSpace(instrumentName)) {
+            dataAccess.DeleteInstrument(instrumentName);
+            instrumentName = string.Empty;
+        }
+    }
+    private void AddSong() {
+        if (!string.IsNullOrWhiteSpace(songName)) {
+            dataAccess.CreateSong(songName);
+            songName = string.Empty;
+        }
+    }
+    private void RemoveSong() {
+        if (!string.IsNullOrWhiteSpace(songName)) {
+            dataAccess.DeleteSong(songName);
+            songName = string.Empty;
+        }
+    }
+    private void AddUser(){
+        if (string.IsNullOrEmpty(firstName) || string.IsNullOrEmpty(lastName) || string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password) || string.IsNullOrEmpty(selectedInstrument)) {
+            Console.WriteLine($"Wrong input! {firstName}, {lastName}, {email}, {password}, {selectedInstrument}");
+            return;
+        }
+        dataAccess.CreateUser(firstName, lastName, email, password, selectedInstrument);
+        firstName = string.Empty; lastName = string.Empty; email = string.Empty; password = string.Empty;
+    }
+    private void GoToAddConcert() {
+        Navigation.NavigateTo("/add-concert");
+    }
+}

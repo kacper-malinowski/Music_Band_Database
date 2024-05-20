@@ -1,0 +1,50 @@
+﻿@page "/login"
+
+@rendermode InteractiveServer
+
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@inject ProtectedSessionStorage sessionStorage
+@inject NavigationManager Navigation
+<h1>BBPWr Music Mibrary</h1>
+<h2>Login</h2>
+<div class="text-input">
+    Email
+    <input type="text" @bind="email" />
+</div>
+<div class="text-input">
+    Password
+    <input type="text" @bind="password" />
+</div>
+<div class="text-input">
+    <button class="btn btn-primary" @onclick="LogIn">Log in</button>
+</div>
+<p>@loginMessage</p>
+@code {
+    private string? email, password;
+    private string loginMessage = "";
+    DataAccess dataAccess = new DataAccess();
+
+    private async void LogIn() {
+        if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password)) {
+            Console.WriteLine($"Wrong input!");
+            return;
+        }
+
+        if (dataAccess.ValidateLogin(email, password)) {
+            
+            string userName = dataAccess.GetUsername(email);
+            bool isAdmin = dataAccess.IsAdmin(email);
+
+            await sessionStorage.SetAsync("IsLoggedIn", true);
+            await sessionStorage.SetAsync("UserEmail", email);
+            await sessionStorage.SetAsync("UserName", userName);
+            await sessionStorage.SetAsync("IsAdmin", isAdmin);
+
+            email = string.Empty; password = string.Empty;
+            Navigation.NavigateTo("/");
+        } else {
+            loginMessage = "Invalid email or password.";
+        }
+        
+    }
+}

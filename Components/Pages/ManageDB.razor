@@ -2,9 +2,10 @@
 @rendermode InteractiveServer
 @inject NavigationManager Navigation
 
-<PageTitle>Manage Database</PageTitle>
-<h1>BBPWr Music Mibrary</h1>
 
+<PageTitle>Manage Database</PageTitle>
+<button class="btn btn-primary float-right" @onclick="Back">Back</button>
+<h1>BBPWr Music Mibrary</h1>
 <h2 class="header-top">Add instrument</h2>
 <input type="text" @bind="instrumentName" />
 <button class="btn btn-primary" @onclick="AddInstrument">Add instrument</button>
@@ -42,7 +43,11 @@
     </select>
 </div>
 <div class="text-input">
-    <button class="btn btn-primary" @onclick="AddUser">Register</button>
+    <button class="btn btn-primary" @onclick="AddUser">Register user</button>
+</div>
+<h2 class="header-top">Other options</h2>
+<div class="text-input">
+    <button class="btn btn-primary" @onclick="AutomaticallyCreateSheetMusic">AutomaticallyCreateSheetMusic</button>
 </div>
 <div class="text-input">
     <button class="btn btn-primary" @onclick="GoToAddConcert">Add Concert</button>
@@ -83,6 +88,9 @@
             songName = string.Empty;
         }
     }
+    private void AutomaticallyCreateSheetMusic() {
+        dataAccess.CreateSheetMusic();
+    }
     private void AddUser(){
         if (string.IsNullOrEmpty(firstName) || string.IsNullOrEmpty(lastName) || string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password) || string.IsNullOrEmpty(selectedInstrument)) {
             Console.WriteLine($"Wrong input! {firstName}, {lastName}, {email}, {password}, {selectedInstrument}");
@@ -93,5 +101,8 @@
     }
     private void GoToAddConcert() {
         Navigation.NavigateTo("/add-concert");
+    }
+    private void Back() {
+        Navigation.NavigateTo("/");
     }
 }

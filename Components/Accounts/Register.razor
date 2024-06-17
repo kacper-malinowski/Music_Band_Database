@@ -1,6 +1,7 @@
 ﻿@page "/register"
 @rendermode InteractiveServer
-<h1>BBPWr Music Mibrary</h1>
+@inject NavigationManager Navigation
+<h1>Band Music Library</h1>
 <h2>Register</h2>
 <div class="text-input">
     First Name
@@ -47,5 +48,6 @@
         }
         dataAccess.CreateUser(firstName, lastName, email, password, selectedInstrument);
         firstName = string.Empty; lastName = string.Empty; email = string.Empty; password = string.Empty;
+        Navigation.NavigateTo("/");
     }
 }

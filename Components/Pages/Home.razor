@@ -7,7 +7,7 @@
 @inject ProtectedSessionStorage sessionStorage
 
 <PageTitle>Home</PageTitle>
-<h1>BBPWr Music Mibrary</h1>
+<h1>Band Music Library</h1>
 @if (!isLoggedIn) {
     <h2>Please log in or register to continue </h2>
     <div class="text-input">
@@ -35,11 +35,9 @@
 @code {
     private bool isLoggedIn, isAdmin;
     private string userEmail, userName;
-    private bool isFirstRender = true;
 
     protected override async Task OnAfterRenderAsync(bool firstRender) {
-        if (firstRender && isFirstRender) {
-            isFirstRender = false;
+        if (firstRender) {
             var loginState = await sessionStorage.GetAsync<bool>("IsLoggedIn");
             isLoggedIn = loginState.Success && loginState.Value;
 
@@ -53,7 +51,7 @@
                 var adminState = await sessionStorage.GetAsync<bool>("IsAdmin");
                 isAdmin = adminState.Success && adminState.Value;
             }
-            StateHasChanged(); // Re-render the component
+            StateHasChanged();
         }
     }
 

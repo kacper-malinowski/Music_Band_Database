@@ -8,6 +8,7 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.AddScoped<ProtectedSessionStorage>();
+builder.Services.AddHttpClient();
 
 var app = builder.Build();
 

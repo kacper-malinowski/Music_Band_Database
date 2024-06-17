@@ -1,6 +1,8 @@
 ﻿@page "/add-concert"
 @rendermode InteractiveServer
 
+@inject NavigationManager Navigation
+<button class="btn btn-primary float-right" @onclick="Back">Back</button>
 <h3>AddConcert</h3>
 <div class="text-input">
     Date
@@ -30,6 +32,7 @@
     List<Song> songs;
 
     protected override void OnInitialized() {
+        date = DateTime.Now;
         songs = dataAccess.GetSongs();
     }
 
@@ -40,5 +43,9 @@
             return;
         }
         dataAccess.AddConcert(date, description, selectedSongs);
+        Navigation.NavigateTo("/manage-db");
+    }
+    private void Back() {
+        Navigation.NavigateTo("/manage-db");
     }
 }

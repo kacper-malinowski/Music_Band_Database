@@ -5,7 +5,7 @@
 @using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
 @inject ProtectedSessionStorage sessionStorage
 @inject NavigationManager Navigation
-<h1>BBPWr Music Mibrary</h1>
+<h1>Band Music Library</h1>
 <h2>Login</h2>
 <div class="text-input">
     Email
@@ -13,7 +13,7 @@
 </div>
 <div class="text-input">
     Password
-    <input type="text" @bind="password" />
+    <input type="password" @bind="password" />
 </div>
 <div class="text-input">
     <button class="btn btn-primary" @onclick="LogIn">Log in</button>
@@ -31,13 +31,15 @@
         }
 
         if (dataAccess.ValidateLogin(email, password)) {
-            
+
             string userName = dataAccess.GetUsername(email);
             bool isAdmin = dataAccess.IsAdmin(email);
+            int instrumentID = dataAccess.GetInstrumentFromEmail(email);
 
             await sessionStorage.SetAsync("IsLoggedIn", true);
             await sessionStorage.SetAsync("UserEmail", email);
             await sessionStorage.SetAsync("UserName", userName);
+            await sessionStorage.SetAsync("InstrumentID", instrumentID);
             await sessionStorage.SetAsync("IsAdmin", isAdmin);
 
             email = string.Empty; password = string.Empty;

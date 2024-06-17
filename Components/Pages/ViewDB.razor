@@ -1,47 +1,113 @@
 ﻿@page "/view-db"
 @rendermode InteractiveServer
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@using System.Net.Http.Headers
+@using System.Text.Json
+@inject ProtectedSessionStorage sessionStorage
+@inject IJSRuntime JS
+@inject HttpClient Http
+@inject NavigationManager Navigation
 
-<h3>ViewDB</h3>
+<button class="btn btn-primary float-right" @onclick="Back">Back</button>
+@if (!isLoggedIn) {
+    <p>You don't have permission to view this site :(</p>
+}
 
-<p>Select Table</p>
-<select @onchange="OnSelectedTableChanged">
-    <option value="">-- Select Table --</option>
-    @foreach (var table in tables) {
-        <option value="@table">@table</option>
-    }
-</select>
-<button class="btn btn-primary" >Display</button>
+@if (isLoggedIn) {
+    <h3>ViewDB</h3>
 
-@if (tableContent != null && tableContent.Count > 0) {
-    <h4>@selectedTable</h4>
-    <table class="table">
+    <p>Download sheet_music package</p>
+    <button class="btn btn-primary" @onclick="DownloadZIP">Download .zip</button>
+
+    <h3>Upcoming concerts</h3>
+    <table class="table table-bordered table-striped">
         <thead>
             <tr>
-                @foreach (var column in tableContent[0].Keys) {
-                    <th>@column</th>
-                }
+                <th>Date</th>
+                <th>Description</th>
+                <th>Songs</th>
             </tr>
         </thead>
         <tbody>
-            @foreach (var row in tableContent) {
+            @foreach (var concert in upcomingConcerts) {
                 <tr>
-                    @foreach (var cell in row.Values) {
-                        <td>@cell</td>
-                    }
+                    <td>@concert.Date.ToString("yyyy-MM-dd HH:mm")</td>
+                    <td>@concert.Description</td>
+                    <td>
+                        <ul>
+                            @foreach (var song in concert.Songs) {
+                                <li>@song.name</li>
+                            }
+                        </ul>
+                    </td>
                 </tr>
             }
         </tbody>
     </table>
+
+
+    @if (isAdmin) {
+        <h3>(Admin) View Database</h3>
+        <p>Select Table</p>
+        <select @onchange="OnSelectedTableChanged">
+            <option value="">-- Select Table --</option>
+            @foreach (var table in tables) {
+                <option value="@table">@table</option>
+            }
+        </select>
+    }
+
+
+    @if (isAdmin && tableContent != null && tableContent.Count > 0) {
+        <h4>@selectedTable</h4>
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    @foreach (var column in tableContent[0].Keys) {
+                        <th>@column</th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var row in tableContent) {
+                    <tr>
+                        @foreach (var cell in row.Values) {
+                            <td>@cell</td>
+                        }
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
 }
 
 @code {
-    private DataAccess dataAccess = new DataAccess();
+    private bool isLoggedIn, isAdmin = false;
+    private DataAccess dataAccess;
     private string selectedTable;
     private List<string> tables;
     private List<Dictionary<string, object>> tableContent;
-
+    private int userInstrumentID;
+    private List<ConcertWithSongs> upcomingConcerts = new List<ConcertWithSongs>();
     protected override void OnInitialized() {
+        dataAccess = new DataAccess();
         tables = dataAccess.GetTables();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender) {
+        if (firstRender) {
+            var loginState = await sessionStorage.GetAsync<bool>("IsLoggedIn");
+            isLoggedIn = loginState.Success && loginState.Value;
+            if (isLoggedIn) {
+                var adminState = await sessionStorage.GetAsync<bool>("IsAdmin");
+                isAdmin = adminState.Success && adminState.Value;
+                var userInstrumentIDState = await sessionStorage.GetAsync<int>("InstrumentID");
+                userInstrumentID = userInstrumentIDState.Success ? userInstrumentIDState.Value : -1;
+                upcomingConcerts = dataAccess.GetUpcomingConcerts();
+            }
+
+            StateHasChanged();
+        }
     }
 
     private async Task OnSelectedTableChanged(ChangeEventArgs e) {
@@ -49,7 +115,18 @@
 
         if (!string.IsNullOrEmpty(selectedTable)) {
             tableContent = dataAccess.GetTableContent(selectedTable);
-            Console.WriteLine("doiung shit");
         }
+    }
+
+    private async Task DownloadZIP() {
+        var fileStream = dataAccess.DownloadZIP(userInstrumentID);
+        var fileName = "sheet_music.zip";
+
+        using var streamRef = new DotNetStreamReference(stream: fileStream);
+
+        await JS.InvokeVoidAsync("downloadFileFromStream", fileName, streamRef);
+    }
+    private void Back() {
+        Navigation.NavigateTo("/");
     }
 }
